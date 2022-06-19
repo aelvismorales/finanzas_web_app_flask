@@ -21,7 +21,7 @@ Una vez ya se tenga Conda instalado, podemos continuar con la instalación.
 ```
 2. Crearemos un ambiente con Conda de la siguiente manera:
  ```sh
-   conda create --name finanzas-api python=3.9
+   conda create --name finanzas-api python=3.8
  ```
 3. Ya que tengamos las varaibles de entorno configuradas, procederemos a reactivarlo con los siguientes comandos:
  ```sh
