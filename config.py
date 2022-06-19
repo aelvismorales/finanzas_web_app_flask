@@ -12,3 +12,4 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_TRACK_MODIFICATIONS=False
     
 
+#"postgresql://isnjonskuprehk:07d8bb3abcb665f2611cbf435a79c4dfeeac18604299189722d794802c1971fa@ec2-23-23-182-238.compute-1.amazonaws.com:5432/finanzasflask"
