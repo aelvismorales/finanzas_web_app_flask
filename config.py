@@ -9,7 +9,7 @@ class Config(object):
 class DevelopmentConfig(Config):
     DEBUG=True
     #SQLALCHEMY_DATABASE_URI ='mysql+pymysql://root:admin@localhost:3306/test'
-    SQLALCHEMY_DATABASE_URI='postgres://isnjonskuprehk:07d8bb3abcb665f2611cbf435a79c4dfeeac18604299189722d794802c1971fa@ec2-23-23-182-238.compute-1.amazonaws.com:5432/dbgnihpfcroaus'
+    SQLALCHEMY_DATABASE_URI='postgresql://isnjonskuprehk:07d8bb3abcb665f2611cbf435a79c4dfeeac18604299189722d794802c1971fa@ec2-23-23-182-238.compute-1.amazonaws.com:5432/dbgnihpfcroaus'
     SQLALCHEMY_TRACK_MODIFICATIONS=False
     
 
