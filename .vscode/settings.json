@@ -1,3 +1,5 @@
 {
-    "appService.showBuildDuringDeployPrompt": false
+    "appService.showBuildDuringDeployPrompt": false,
+    "appService.defaultWebAppToDeploy": "/subscriptions/47f0b5fe-9f94-4660-8a35-b694362528aa/microsoft.web/sites/subscriptions/47f0b5fe-9f94-4660-8a35-b694362528aa/resourceGroups/finanzas_flask/providers/Microsoft.Web/sites/webfinanza",
+    "appService.deploySubpath": "."
 }

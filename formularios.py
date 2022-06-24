@@ -1,7 +1,7 @@
 from tokenize import Comment
 from wsgiref.validate import validator
 from click import command
-from wtforms import Form
+from wtforms import Form,SelectMultipleField
 from wtforms import StringField,TextField,PasswordField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import DataRequired,Length,ValidationError
@@ -33,3 +33,5 @@ class CreateAccount(Form):
         usuario=Usuario.query.filter_by(username=username).first()
         if usuario is not None:
             raise ValidationError("El username ya se encuentra registrado")
+class cuota_inicial(Form):
+    cuota=SelectMultipleField("Si-No",choices=[('yes','si'),('n','no')],validate_choice=True)
