@@ -57,10 +57,13 @@ def logout():
 @app.route('/create',methods=['GET','POST'])
 def create_account():
     create_user_form=formularios.CreateAccount(request.form)
-    if request.method=='POST' and create_user_form.validate():
+    cuota=formularios.cuota_inicial(request.form)
+
+    if request.method=='POST' and create_user_form.validate() and cuota.validate():
         usuario=Usuario(create_user_form.username.data,
                         create_user_form.email.data,
                         create_user_form.password.data)
+        print(cuota.cuota.data)
 
         db.session.add(usuario)
         db.session.commit()
@@ -70,6 +73,21 @@ def create_account():
     else:
         print('Error en el la creacion')
     return render_template('create_account.html',form=create_user_form)
+
+@app.route('/si',methods=['GET','POST'])
+def create_account():
+    cuota=formularios.cuota_inicial(request.form)
+
+    if request.method=='POST' and cuota.validate():
+
+        #print(cuota.cuota.data)
+        #db.session.add(usuario)
+        #db.session.commit()
+        #succes_message='Felicidades por registrarte {}'.format(create_user_form.username.data)
+        flash("succes_message")
+    else:
+        print('Error en el la creacion')
+    return render_template('create_account.html',form=cuota)
 
 if __name__=='__main__':
     #csrf.init_app(app)
