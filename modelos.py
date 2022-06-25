@@ -1,9 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash,check_password_hash
 import datetime
+import pandas as pd
 
 db=SQLAlchemy()
-#db=create_engine
+
 class Usuario(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     username=db.Column(db.String(50),unique=True)
@@ -21,6 +22,116 @@ class Usuario(db.Model):
         
     def verify_password(self,password):
         return check_password_hash(self.password,password)
+
+
+def renta_bono(tep,c,n):
+  return -c*(tep*pow((1+tep),n))/(pow(1+tep,n)-1)
+
+class Bonos:
+    def __init__(self,valor_nominal,valor_comercial,n_anios,tasa_interes,tasa_anual_dsct,imp_a_la_renta,fecha_emision,prima,\
+            estructuracion,colocacion,flotacion,cavali,diasanio=360,tipo_tasa='efectiva',capitalizacion='diario',frecuencia_cupon='mensual',inflacion_proyectada=0.0,iep=0.0,plazo_gracia='s'):
+        self.valor_nominal=valor_nominal
+        self.valor_comercial=valor_comercial
+        self.n_anios=n_anios
+        self.frecuencia_cupon=frecuencia_cupon
+        self.diasanio=diasanio
+        self.tipo_tasa=tipo_tasa
+        self.capitalizacion=capitalizacion
+        self.tasa_interes=tasa_interes
+        self.tasa_anual_dsct=tasa_anual_dsct
+        self.imp_a_la_renta=imp_a_la_renta
+        self.fecha_emision=fecha_emision
+        self.prima=prima
+        self.estructuracion=estructuracion
+        self.colocacion=colocacion
+        self.flotacion=flotacion
+        self.cavali=cavali
+        self.inflacion_proyectada=inflacion_proyectada
+        self.iep=iep
+        self.plazo_gracia=plazo_gracia
     
+    def cartera_bonos(self):
+        frecuencia_cupon_diccionario={'mensual':30,'bimestral':60,'trimestral':90,'cuatrimestral':120,'semestral':180,'anual':360}
+        capitalizacion_diccionario={'diario':1,'quincenal':15,'mensual':30,'bimestral':60,'trimestral':90,'cuatrimestral':120,'semestral':180,'anual':360}
+        
+        self.frecuencia_cupon=frecuencia_cupon_diccionario[self.frecuencia_cupon]
+        self.capitalizacion=capitalizacion_diccionario[self.capitalizacion]
+
+        periodos_anio=int(self.diasanio/self.frecuencia_cupon)
+        periodos_total=periodos_anio*self.n_anios
+
+        if(self.tipo_tasa.lower()=="efectiva"):
+            tasa_efec_anual=self.tasa_interes
+        else:
+            tasa_efec_anual=pow((1+self.tasa_interes/(self.diasanio/self.capitalizacion)),
+                      (self.diasanio/self.capitalizacion))-1
+
+        tasa_efec_periodo=pow((1+tasa_efec_anual),(self.frecuencia_cupon/self.diasanio))-1
+        cok_periodo=pow((1+self.tasa_anual_dsct),(self.frecuencia_cupon/self.diasanio))-1
+        costes_ini_emisor=(self.estructuracion+self.colocacion+self.flotacion+self.cavali)*self.valor_comercial
+        costes_ini_bonista=(self.flotacion+self.cavali)*self.valor_comercial
+
+        df_resultado_de_estructuracion=pd.DataFrame(index=['Frecuencia del cupon','Días capitalización','Nro. períodos por año',
+                                                     'Nro. total de períodos','Tasa efectiva anual','Tasa efectiva del período',
+                                                     'COK del período','Costes iniciales emisor','Costes iniciales bonista'],
+                                            data=[self.frecuencia_cupon,self.capitalizacion,periodos_anio,periodos_total,
+                                                  tasa_efec_anual,tasa_efec_periodo,cok_periodo,costes_ini_emisor,costes_ini_bonista],columns=['Resultado de la estructuración del bono'])
+        df_resultado_de_estructuracion.style.format({
+            'Tasa efectiva anual': '{:,.7%}'.format,
+            'Tasa efectiva del período': '{:,.7%}'.format,
+            'COK del período': '{:,.7%}'.format,
+            'Costes iniciales emisor': '{:,.2f}'.format,
+            'Costes iniciales bonista': '{:,.2f}'.format,
+
+            })
+
+        Cartera_De_bonos=[]
+        saldo_final_bono=float('inf')
+        n=0
+        saldo_inicial_bono=self.valor_nominal
+        tabla_bono=0.0
+        while n<periodos_total:
+            n=n+1
+            if n<=periodos_total:
+                if n==1:
+                    tabla_bono=saldo_inicial_bono
+                else:
+                    tabla_bono=saldo_final_bono
+                tabla_bono_indexado=tabla_bono*(1+self.iep)
+                tabla_cupon=-tabla_bono_indexado*tasa_efec_periodo
+                tabla_cuota=renta_bono(tasa_efec_periodo,tabla_bono_indexado,(periodos_total-n+1))
+                tabla_amort=tabla_cuota-tabla_cupon
+    
+                if(n==periodos_total):
+                    tabla_prima=-self.prima*tabla_bono_indexado
+                else:
+                    tabla_prima=0.0
+                tabla_escudo=-tabla_cupon*self.imp_a_la_renta
+                tabla_flujo_emisor=tabla_cuota+tabla_prima
+                tabla_flujo_emisor_con_escudo=tabla_flujo_emisor+tabla_escudo
+                tabla_flujo_bonista=-tabla_flujo_emisor
+                tabla_flujo_act=tabla_flujo_bonista/pow((1+cok_periodo),n)
+                tabla_fa_x_plazo=tabla_flujo_act*n*self.frecuencia_cupon/self.diasanio
+                tabla_factor_x_convex=tabla_flujo_act*n*(1+n)
+                saldo_final_bono=tabla_bono_indexado+tabla_amort
+
+                Cartera_De_bonos.append([n,self.inflacion_proyectada,self.iep,self.plazo_gracia,round(tabla_bono,2),
+                            round(tabla_bono_indexado,2),round(tabla_cupon,2),round(tabla_cuota,2),round(tabla_amort,2),
+                            round(tabla_prima,2),round(tabla_escudo,2),round(tabla_flujo_emisor,2),round(tabla_flujo_emisor_con_escudo,2),
+                            round(tabla_flujo_bonista,2),round(tabla_flujo_act,2),round(tabla_fa_x_plazo,2),round(tabla_factor_x_convex,2)
+                            ])
+        df = pd.DataFrame(Cartera_De_bonos,columns = ['Nro.','Inflación Anual','Inflación del periodo','Plazo de gracia','Bono',
+                   'Bono Indexado','Cupón (Interes)','Cuota','Amort.','Prima','Escudo',
+                   'Flujo Emisor','Flujo Emisor c/Escudo','Flujo Bonista','Flujo Act.',
+                   'FA x Plazo','Factor p/Convexidad'])
+        df.loc[len(df)] = [0,0,0,' ',0,0,0,0,0,0,0,0,0,0,0,0,0]
+        df = df.shift()
+        df.loc[0] = [0,0,0,' ',0,0,0,0,0,0,0,0,0,0,0,0,0]
+        df['Nro.']=df['Nro.'].astype('int')
+        df.loc[0, 'Flujo Emisor']=self.valor_comercial-costes_ini_emisor
+        df.loc[0, 'Flujo Emisor c/Escudo']=df.loc[0, 'Flujo Emisor']
+        df.loc[0, 'Flujo Bonista']=-self.valor_comercial-costes_ini_bonista
+
+        return df,df_resultado_de_estructuracion
 
 

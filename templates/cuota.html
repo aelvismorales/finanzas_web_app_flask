@@ -1,0 +1,56 @@
+{% extends 'base.html' %} 
+
+{% block head %} 
+    Finanzas App
+{%endblock%}
+
+
+{% block content %}
+{% from "macro.html" import render_field %} 
+<form id="selectform" method="POST" >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="container">
+        <div class="row row-cols-auto">
+          <div class="col">{{render_field(form.valor_nominal) }}</div>
+          <div class="col">{{render_field(form.valor_comercial) }}</div>
+          <div class="col">{{render_field(form.n_anios) }}</div>
+          <div class="col">{{render_field(form.frecuencia_cupon) }}</div>
+          <div class="col">{{render_field(form.diasanio) }}</div>
+          <div class="col">{{render_field(form.tipo_tasa) }}</div>
+          <div class="col">{{render_field(form.capitalizacion) }}</div>
+          <div class="col">{{render_field(form.tasa_interes) }}</div>
+          <div class="col">{{render_field(form.tasa_anual_dsct) }}</div>
+          <div class="col">{{render_field(form.imp_a_la_renta) }}</div>
+          <div class="col">{{render_field(form.fecha_emision) }}</div>
+          <div class="col">{{render_field(form.prima) }}</div>
+          <div class="col">{{render_field(form.estructuracion) }}</div>
+          <div class="col">{{render_field(form.colocacion) }}</div>
+          <div class="col">{{render_field(form.flotacion) }}</div>
+          <div class="col">{{render_field(form.cavali) }}</div>
+        </div>
+      </div>
+    <div id="success"></div>
+        <div class="row">
+            <div class="col text-center">
+                <div class="form-group cols=xs=12">
+                <button type="submit" class="btn btn-primary">Send</button>
+                </div>
+            </div>
+        </div>
+</form>
+<div class="col text-center">
+    {% for table in table %}
+    {{title[loop.index]}}
+    {{ table|safe }}
+{% endfor %}
+</div>
+
+<div class="col text-center">
+    {% for table in tables %}
+    {{titles[loop.index]}}
+    {{ table|safe }}
+{% endfor %} 
+</div>
+
+
+{%endblock%}
