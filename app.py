@@ -1,28 +1,22 @@
-from flask import Flask, redirect,render_template,url_for
-from flask import request,flash,session
+from flask import Flask,render_template,request,flash,session,redirect,url_for
 from flask_wtf.csrf import CSRFProtect
-from config import DevelopmentConfig
-from modelos import db,Usuario
+from modelos import Usuario
+#from config import DevelopmentConfig
+from flask_sqlalchemy import SQLAlchemy
 import formularios
 
-
 app=Flask(__name__)
-app.config.from_object(DevelopmentConfig)
+app.config['SECRET_KEY']='123447a47f563e90fe2db0f56b1b17be62378e31b7cfd3adc776c59ca4c75e2fc512c15f69bb38307d11d5d17a41a7936789'
+#app.config['DEBUG']=True
+#app.config['SQLALCHEMY_DATABASE_URI']='postgresql://isnjonskuprehk:07d8bb3abcb665f2611cbf435a79c4dfeeac18604299189722d794802c1971fa@ec2-23-23-182-238.compute-1.amazonaws.com:5432/dbgnihpfcroaus'
+#app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
+
+#app.config.from_object(DevelopmentConfig)
+#db=SQLAlchemy(app)
 csrf=CSRFProtect(app)
-csrf.init_app(app)
-db.init_app(app)
 
-with app.app_context():
-    db.create_all()
-
-#@app.before_request
-#def beforerequest():
-    #if 'username' not in session and request.endpoint in ['comment']:
-    #    return redirect(url_for('login'))
-    #if 'username' in session and request.endpoint in ['login','create']:
-    #    return redirect(url_for('index'))
-    #if 'username' in session and request.endpoint in ['login','create']:
-    #    return redirect(url_for('index'))
+#with app.app_context():
+#    db.create_all()
 
 @app.route('/')
 def index():
@@ -47,13 +41,6 @@ def login():
     else:
         print('Error en el formulario')
     return render_template('login.html',form=user_form)
-
-@app.route('/logout')
-def logout():
-    if 'username' in session:
-        session.pop('username')
-    return redirect(url_for('login'))
-
 @app.route('/create',methods=['GET','POST'])
 def create_account():
     create_user_form=formularios.CreateAccount(request.form)
@@ -65,35 +52,13 @@ def create_account():
                         create_user_form.password.data)
         #print(cuota.cuota.data)
 
-        db.session.add(usuario)
-        db.session.commit()
+        #db.session.add(usuario)
+        #db.session.commit()
 
         succes_message='Felicidades por registrarte {}'.format(create_user_form.username.data)
         flash(succes_message)
     else:
         print('Error en el la creacion')
     return render_template('create_account.html',form=create_user_form)
-
-#@app.route('/si',methods=['GET','POST'])
-#def create_account():
-#    cuota=formularios.cuota_inicial(request.form)
-
-#    if request.method=='POST' and cuota.validate():
-
-        #print(cuota.cuota.data)
-        #db.session.add(usuario)
-        #db.session.commit()
-        #succes_message='Felicidades por registrarte {}'.format(create_user_form.username.data)
- #       flash("succes_message")
- #   else:
-  #      print('Error en el la creacion')
- #   return render_template('si_no.html',form=cuota)
-
 if __name__=='__main__':
-    #csrf.init_app(app)
-   # db.init_app(app)
-  #  with app.app_context():
-  #      db.create_all()
-        #db.session.commit()
-    app.run(debug=True)
-    
+    app.run(debug=True,port=8000)

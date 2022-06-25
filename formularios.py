@@ -21,6 +21,7 @@ class CommentForm(Form):
 class LoginForm(Form):
     usern=StringField('username',validators=[DataRequired(message='El email es requerido!'),Length(min=4,max=20)])
     password=PasswordField('password',validators=[DataRequired()])
+    
 class CreateAccount(Form):
     username=TextField('Username',validators=[Length(min=4,max=30,message='Ingrese un username valido!.'),
     DataRequired(message='El username es requerido!')])
@@ -33,5 +34,3 @@ class CreateAccount(Form):
         usuario=Usuario.query.filter_by(username=username).first()
         if usuario is not None:
             raise ValidationError("El username ya se encuentra registrado")
-class cuota_inicial(Form):
-    cuota=SelectMultipleField("Si-No",choices=[('yes','si'),('n','no')],validate_choice=True)
