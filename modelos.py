@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash,check_password_hash
 import datetime
 import pandas as pd
-
+from math import trunc
 db=SQLAlchemy()
 
 class Usuario(db.Model):
@@ -74,7 +74,7 @@ class Bonos:
         df_resultado_de_estructuracion=pd.DataFrame(index=['Frecuencia del cupon','Días capitalización','Nro. períodos por año',
                                                      'Nro. total de períodos','Tasa efectiva anual','Tasa efectiva del período',
                                                      'COK del período','Costes iniciales emisor','Costes iniciales bonista'],
-                                            data=[self.frecuencia_cupon,self.capitalizacion,periodos_anio,periodos_total,
+                                            data=[round(self.frecuencia_cupon,0),round(self.capitalizacion,0),round(periodos_anio,0),round(periodos_total,0),
                                                   tasa_efec_anual,tasa_efec_periodo,cok_periodo,costes_ini_emisor,costes_ini_bonista],columns=['Resultado de la estructuración del bono'])
         df_resultado_de_estructuracion.style.format({
             'Tasa efectiva anual': '{:,.7%}'.format,
