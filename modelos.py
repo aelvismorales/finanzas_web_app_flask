@@ -2,7 +2,9 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash,check_password_hash
 import datetime
 import pandas as pd
-from math import trunc
+import numpy_financial as npf
+import pyxirr
+from datetime import datetime,date
 db=SQLAlchemy()
 
 class Usuario(db.Model):
@@ -10,7 +12,7 @@ class Usuario(db.Model):
     username=db.Column(db.String(50),unique=True)
     email=db.Column(db.String(40))
     password=db.Column(db.String(102))
-    created_date=db.Column(db.DateTime,default=datetime.datetime.now)
+    created_date=db.Column(db.DateTime,default=datetime.now)
     
     def __init__(self,username,email,password):
         self.username=username
@@ -124,6 +126,7 @@ class Bonos:
                    'Bono Indexado','Cupón (Interes)','Cuota','Amort.','Prima','Escudo',
                    'Flujo Emisor','Flujo Emisor c/Escudo','Flujo Bonista','Flujo Act.',
                    'FA x Plazo','Factor p/Convexidad'])
+        
         df.loc[len(df)] = [0,0,0,' ',0,0,0,0,0,0,0,0,0,0,0,0,0]
         df = df.shift()
         df.loc[0] = [0,0,0,' ',0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -131,7 +134,69 @@ class Bonos:
         df.loc[0, 'Flujo Emisor']=self.valor_comercial-costes_ini_emisor
         df.loc[0, 'Flujo Emisor c/Escudo']=df.loc[0, 'Flujo Emisor']
         df.loc[0, 'Flujo Bonista']=-self.valor_comercial-costes_ini_bonista
+        
+        NPV=0.0
+        for n,x in enumerate(df['Flujo Bonista'][1:]):
+            NPV=NPV+x/pow(1+cok_periodo,n+1)
+        
+        utilidad_perdida=df['Flujo Bonista'][0]+NPV
 
-        return df,df_resultado_de_estructuracion
+        df_resultado_del_precio_actual_utilidad=pd.DataFrame({'Precio actual'     :[NPV],
+                                             'Utilidad pérdida'      :[utilidad_perdida]
+                                             }
+                                            ,index={'Resultado del precio actual y de utilidad'})
+
+        df_resultado_del_precio_actual_utilidad.style.format({
+        'Precio actual': '{:,.2f}'.format,
+        'Utilidad pérdida': '{:,.2f}'.format
+        })
+
+        duracion=sum(df['FA x Plazo'][1:])/sum(df['Flujo Act.'][1:])
+        convexividad=sum(df['Factor p/Convexidad'][1:])/(pow(1+cok_periodo,2)*sum(df['Flujo Act.'][1:])*pow(self.diasanio/self.frecuencia_cupon,2))
+
+        total=duracion+convexividad
+        duracion_modificada=duracion/(1+cok_periodo)
+        df_resultado_del_ratio_desicion=pd.DataFrame({'Duración'            :[duracion],
+                                              'Convexividad'        :[convexividad],
+                                              'Total'               :[total],
+                                              'Duracion modificada' :[duracion_modificada]
+                                             }
+                                            ,index={'Resultado del ratio de decisión'})
+        df_resultado_del_ratio_desicion.style.format({
+            'Duración': '{:,.2f}'.format,
+            'Convexividad': '{:,.2f}'.format,
+            'Total': '{:,.2f}'.format,
+            'Duracion modificada': '{:,.2f}'.format
+            })
+
+        TCEA_emisor=pow(pyxirr.irr(list(df['Flujo Emisor']))+1,self.diasanio/self.frecuencia_cupon)-1
+        TCEA_emisor_escudo=pow(pyxirr.irr(list(df['Flujo Emisor c/Escudo']))+1,self.diasanio/self.frecuencia_cupon)-1
+        TCEA_bonista=pow(pyxirr.irr(list(df['Flujo Bonista']))+1,self.diasanio/self.frecuencia_cupon)-1
+
+        fecha_deposito=pd.to_datetime(self.fecha_emision, format='%Y-%d-%m').date()
+        fechas_deposito=pd.date_range(fecha_deposito, periods=periodos_total+1,freq='180D')
+        fechas_xirr=[]
+        for date in fechas_deposito:
+            fechas_xirr.append(str(date.date()))
+
+        TCEA_emisor_xirr=pyxirr.xirr(fechas_xirr,list(df['Flujo Emisor']))
+        TCEA_emisor_escudo_xirr=pyxirr.xirr(fechas_xirr,list(df['Flujo Emisor c/Escudo']))
+        TCEA_bonista_xirr=pyxirr.xirr(fechas_xirr,list(df['Flujo Bonista']))
+
+        df_resultado__indicadores_rentabilidad=pd.DataFrame({'TCEA Emisor'            :[TCEA_emisor,TCEA_emisor_xirr],
+                                              'TCEA Emisor c/Escudo'        :[TCEA_emisor_escudo,TCEA_emisor_escudo_xirr],
+                                              'TREA Bonista'               :[TCEA_bonista,TCEA_bonista_xirr],
+                                             }
+                                            ,index={'IRR','XIRR'})
+
+        df_resultado__indicadores_rentabilidad.style.format({
+        'TCEA Emisor': '{:,.7%}'.format,
+        'TCEA Emisor c/Escudo': '{:,.7%}'.format,
+        'TREA Bonista': '{:,.7%}'.format
+        })
+
+        df['Fecha']= fechas_deposito
+        
+        return df,df_resultado_de_estructuracion,df_resultado_del_precio_actual_utilidad,df_resultado_del_ratio_desicion,df_resultado__indicadores_rentabilidad
 
 

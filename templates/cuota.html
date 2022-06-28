@@ -38,16 +38,38 @@
             </div>
         </div>
 </form>
+<br>
 <div class="col text-center">
-    {% for table in table %}
-    {{title[loop.index]}}
+    {% for table in tabla_precio %}
+    
     {{ table|safe }}
 {% endfor %}
 </div>
+<br>
+<div class="col text-center">
+    {% for table in tabla_ratio %}
 
+    {{ table|safe }}
+{% endfor %}
+</div>
+<br>
+<div class="col text-center">
+    {% for table in tabla_indicadores %}
+
+    {{ table|safe }}
+{% endfor %}
+</div>
+<br>
+<div class="col text-center">
+    {% for table in table %}
+
+    {{ table|safe }}
+{% endfor %}
+</div>
+<br>
 <div class="col text-center">
     {% for table in tables %}
-    {{titles[loop.index]}}
+
     {{ table|safe }}
 {% endfor %} 
 </div>

@@ -53,10 +53,13 @@ def cuota():
         cartera_bono=Bonos(valor_nominal,valor_comercial,n_anios,tasa_interes,tasa_anual_dsct,imp_a_la_renta,fecha_emision,prima,\
             estructuracion,colocacion,flotacion,cavali,diasanio,tipo_tasa,capitalizacion,frecuencia_cupon)
         
-        cartera_data,estructuracion=cartera_bono.cartera_bonos()
-        return render_template('cuota.html',form=frecuencia_cupon_form,tables=[cartera_data.to_html(classes='data')],titles=cartera_data.columns.values,table=[estructuracion.to_html(classes='data')],title=estructuracion.columns.values)
-    else:
+        cartera_data,estructuracion,precio_actual,ratio_decision,indicadores=cartera_bono.cartera_bonos()
+        return render_template('cuota.html',form=frecuencia_cupon_form,tables=[cartera_data.to_html(classes='data',header="true")],table=[estructuracion.to_html(classes='data',header="true")],title=estructuracion.columns.values,\
+            tabla_precio=[precio_actual.to_html(classes='data',header="true")],tabla_ratio=[ratio_decision.to_html(classes='data',header="true")],\
+                tabla_indicadores=[indicadores.to_html(classes='data',header="true")])
+    else: 
         print("F")
+    
     return render_template('cuota.html',form=frecuencia_cupon_form)
 
 @app.route('/',methods=['GET','POST'])
