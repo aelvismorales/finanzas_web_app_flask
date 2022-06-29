@@ -7,4 +7,7 @@ wtforms
 Flask-WTF
 pymysql
 psycopg2-binary
-WTForms
+WTForms==2.3.3
+numpy_financial
+pyxirr
+tkinter

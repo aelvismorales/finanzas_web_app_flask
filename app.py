@@ -113,4 +113,4 @@ def create_account():
         print('Error en el la creacion')
     return render_template('create_account.html',form=create_user_form)
 if __name__=='__main__':
-    app.run(debug=True)
+    app.run(debug=False)
