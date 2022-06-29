@@ -1,4 +1,3 @@
-from turtle import title
 from flask import Flask,render_template,request,flash,session,redirect,url_for
 from flask_wtf.csrf import CSRFProtect
 from modelos import Usuario,db,Bonos

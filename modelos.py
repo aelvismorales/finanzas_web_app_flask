@@ -173,7 +173,7 @@ class Bonos:
         TCEA_emisor_escudo=pow(pyxirr.irr(list(df['Flujo Emisor c/Escudo']))+1,self.diasanio/self.frecuencia_cupon)-1
         TCEA_bonista=pow(pyxirr.irr(list(df['Flujo Bonista']))+1,self.diasanio/self.frecuencia_cupon)-1
 
-        fecha_deposito=pd.to_datetime(self.fecha_emision, format='%Y-%d-%m').date()
+        fecha_deposito=self.fecha_emision
         fechas_deposito=pd.date_range(fecha_deposito, periods=periodos_total+1,freq='180D')
         fechas_xirr=[]
         for date in fechas_deposito:
@@ -196,7 +196,8 @@ class Bonos:
         })
 
         df['Fecha']= fechas_deposito
-        
+        second_column=df.pop('Fecha')
+        df.insert(1,'Fecha',second_column)
         return df,df_resultado_de_estructuracion,df_resultado_del_precio_actual_utilidad,df_resultado_del_ratio_desicion,df_resultado__indicadores_rentabilidad
 
 
