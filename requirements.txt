@@ -10,3 +10,4 @@ WTForms==2.3.3
 numpy_financial==1.0.0
 pyxirr==0.7.2
 Jinja2==3.0.3
+pandas
