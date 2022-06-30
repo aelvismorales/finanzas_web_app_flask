@@ -174,7 +174,8 @@ class Bonos:
         TCEA_bonista=pow(pyxirr.irr(list(df['Flujo Bonista']))+1,self.diasanio/self.frecuencia_cupon)-1
 
         fecha_deposito=self.fecha_emision
-        fechas_deposito=pd.date_range(fecha_deposito, periods=periodos_total+1,freq='180D')
+        frecuencia=str(self.frecuencia_cupon)+'D'
+        fechas_deposito=pd.date_range(fecha_deposito, periods=periodos_total+1,freq=frecuencia)
         fechas_xirr=[]
         for date in fechas_deposito:
             fechas_xirr.append(str(date.date()))
